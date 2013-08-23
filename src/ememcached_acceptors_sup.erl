@@ -16,13 +16,13 @@
 %% API
 %% ===================================================================
 start_link(Port, AcceptorsNum) ->
-	supervisor:start_link({local, ?MODULE}, ?MODULE, [Port, AcceptorsNum]).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [Port, AcceptorsNum]).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 init([Port, AcceptorsNum]) ->
-	{ok, ListenSocket} = gen_tcp:listen(Port, [{active,false},binary,{packet,line},{reuseaddr,true},{backlog, 1024},{nodelay,true}]),
-	{ok, _} = inet:sockname(ListenSocket),
-	Acceptors = [{{acceptor,N},{ememcached_acceptor, start_link, [ListenSocket]}, permanent, brutal_kill, worker,[]} || N <- lists:seq(1,AcceptorsNum)],
-	{ok, {{one_for_one, 10, 10}, Acceptors}}.
+    {ok, ListenSocket} = gen_tcp:listen(Port, [{active, false}, binary, {packet, line}, {reuseaddr, true}, {backlog, 1024}, {nodelay, true}]),
+    {ok, _} = inet:sockname(ListenSocket),
+    Acceptors = [{{acceptor, N}, {ememcached_acceptor, start_link, [ListenSocket]}, permanent, brutal_kill, worker, []} || N <- lists:seq(1, AcceptorsNum)],
+    {ok, {{one_for_one, 10, 10}, Acceptors}}.

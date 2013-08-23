@@ -9,9 +9,9 @@
 %% Application callbacks
 %% ===================================================================
 start(_StartType, _StartArgs) ->
-	{ok, Port} = application:get_env(ememcached, port),
-	{ok, AcceptorsNum} = application:get_env(ememcached, acceptors),
-	ememcached_sup:start_link(Port, AcceptorsNum).
+    {ok, Port} = application:get_env(ememcached, port),
+    {ok, AcceptorsNum} = application:get_env(ememcached, acceptors),
+    ememcached_sup:start_link(Port, AcceptorsNum).
 
 stop(_State) ->
     ok.

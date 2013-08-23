@@ -1,7 +1,10 @@
 -module(ememcached).
 
+%% API
 -export([start/0]).
 
-
+%% ===================================================================
+%% API
+%% ===================================================================
 start() ->
-	application:start(ememcached).
+    application:start(ememcached).

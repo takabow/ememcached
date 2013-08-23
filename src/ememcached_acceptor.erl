@@ -14,20 +14,20 @@
 %% API
 %% ===================================================================
 start_link(ListenSocket) ->
-	ConnectionsSup = whereis(ememcached_connections_sup),
-	Pid = spawn_link(?MODULE, loop, [ListenSocket,ConnectionsSup]),
-	{ok, Pid}.
+    ConnectionsSup = whereis(ememcached_connections_sup),
+    Pid = spawn_link(?MODULE, loop, [ListenSocket, ConnectionsSup]),
+    {ok, Pid}.
 
 %% ===================================================================
 %% Internal
 %% ===================================================================
-loop(ListenSocket,ConnectionsSup) ->
-	_ = case gen_tcp:accept(ListenSocket, infinity) of
-			{ok, ConnectionSocket} ->
-				gen_tcp:controlling_process(ConnectionSocket, ConnectionsSup),
-				ememcached_connections_sup:start_worker(ConnectionsSup, ConnectionSocket);
-			{error, Reason} when Reason =/= closed ->
-				io:format("~p ememcached_acceptors:loop - connection error~n",[self()]),
-				ok
-		end,
-	loop(ListenSocket, ConnectionsSup).
+loop(ListenSocket, ConnectionsSup) ->
+    _ = case gen_tcp:accept(ListenSocket, infinity) of
+            {ok, ConnectionSocket} ->
+                gen_tcp:controlling_process(ConnectionSocket, ConnectionsSup),
+                ememcached_connections_sup:start_worker(ConnectionsSup, ConnectionSocket);
+            {error, Reason} when Reason =/= closed ->
+                io:format("~p ememcached_acceptors:loop - connection error~n", [self()]),
+                ok
+        end,
+    loop(ListenSocket, ConnectionsSup).

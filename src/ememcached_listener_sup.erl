@@ -16,12 +16,12 @@
 %% API
 %% ===================================================================
 start_link(Port, AcceptorsNum) ->
-	supervisor:start_link({local, ?MODULE}, ?MODULE, [Port, AcceptorsNum]).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [Port, AcceptorsNum]).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 init([Port, AcceptorsNum]) ->
-	ConnectionsSup = ?CHILD(ememcached_connections_sup,supervisor),
-	AcceptorsSup = ?CHILD(ememcached_acceptors_sup, supervisor, [Port, AcceptorsNum]),
-	{ok, {{rest_for_one, 10, 10}, [ConnectionsSup, AcceptorsSup]}}.
+    ConnectionsSup = ?CHILD(ememcached_connections_sup, supervisor),
+    AcceptorsSup = ?CHILD(ememcached_acceptors_sup, supervisor, [Port, AcceptorsNum]),
+    {ok, {{rest_for_one, 10, 10}, [ConnectionsSup, AcceptorsSup]}}.

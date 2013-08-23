@@ -1,13 +1,13 @@
 {application, ememcached,
- [
-  {description, "A memcached server written in Erlang"},
-  {vsn, "1"},
-  {registered, [ememcached]},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
-  {mod, { ememcached_app, []}},
-  {env, [{port, 11211},
-  		 {acceptors, 150}]} 
- ]}.
+    [
+        {description, "A memcached server written in Erlang"},
+        {vsn, "1"},
+        {registered, [ememcached]},
+        {applications, [
+            kernel,
+            stdlib
+        ]},
+        {mod, {ememcached_app, []}},
+        {env, [{port, 11211},
+            {acceptors, 150}]}
+    ]}.
