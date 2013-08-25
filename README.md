@@ -13,21 +13,18 @@ available commands:
 - `incr`
 - `decr`
 
-Of course, supported text portocol only!
+Of course, text portocol only!
 
 # Quick Start
 
-1. Buid ememcached
-2. Start the ememecached server
+## Requirements
 
-## Requirement
-
-ememcached requires Erlang R16B01.
+Ememcached requires Erlang R16B01.
 
 
-## Building ememcached
+## Building Ememcached
 
-just hit `make` command (or `./rebar compile` and `./rebar generate`)
+Just hit `make` command (or `./rebar compile` and `./rebar generate`)
 ```
 $ cd ememcached
 $ make
@@ -53,6 +50,9 @@ After build, change directory to `rel/ememcached/bin`, then execute following co
 
 - `./ememcached start` Start the server (default tcp port 11211).
 - `./ememcached stop` Stop the server.
+
+To check if the emecached server is running, you can ping to the server.
+
 - `./ememcached ping` Send a ping to the server.
 
 Example:
