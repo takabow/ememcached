@@ -1,3 +1,4 @@
+%% @doc memcached server API implementation.
 -module(ememcached_server_api).
 
 %% API

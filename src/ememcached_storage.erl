@@ -1,3 +1,4 @@
+%% @doc Backend storage using ets.
 -module(ememcached_storage).
 
 -behaviour(gen_server).

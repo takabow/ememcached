@@ -1,3 +1,4 @@
+%% @doc TCP connection manipulator.
 -module(ememcached_worker).
 
 %% API
@@ -39,7 +40,7 @@ command(ConnectionSocket, [<<"get">>, Key]) ->
     {_, Response} = ememcached_server_api:get(Key),
     gen_tcp:send(ConnectionSocket, Response);
 command(ConnectionSocket, [<<"set">>, Key, Flags, Exptime, Bytes]) ->
-    try list_to_integer(binary_to_list(Bytes)) of
+    try binary_to_integer(Bytes) of
         BytesInt ->
             inet:setopts(ConnectionSocket, [{packet, raw}]),
             case gen_tcp:recv(ConnectionSocket, BytesInt) of
