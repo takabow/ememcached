@@ -19,27 +19,33 @@ get(Key) ->
 
     end.
 
-
-set(Key, Flags, Exptime, Bytes, Value) when is_integer(Value) ->
+set(Key, Flags, Exptime, Bytes, Value, inspected_value) ->
     case ememcached_storage:set(Key, Flags, Exptime, Bytes, Value) of
         ok ->
             {ok, "STORED\r\n"};
         _ ->
             {error, "NOT_STORED\r\n"}
-    end;
-set(Key, Flags, Exptime, Bytes, Value) ->
-    try list_to_integer(binary_to_list(Value)) of
-        ValueInt ->
-            set(Key, Flags, Exptime, Bytes, ValueInt)
-    catch
-        error:_ ->
-            case ememcached_storage:set(Key, Flags, Exptime, Bytes, Value) of
-                ok ->
-                    {ok, "STORED\r\n"};
-                _ ->
-                    {error, "NOT_STORED\r\n"}
-            end
     end.
+
+%% A value which consists of decimal digit characters, is stored as integer for incr/decr operation. (e.g. 1234)
+%% But the value starts with "0" should be treated as String. (e.g. <<"0123">>)
+%% "48 < Digit, Digit < 58" means decimal digit characters except "0" in ASCII code.
+set(Key, Flags, Exptime, Bytes, <<Digit:8, _/binary>> = Value) when 48 < Digit, Digit < 58 ->
+    try binary_to_integer(Value) of
+    %% Value is integer!
+        ValueInt ->
+            set(Key, Flags, Exptime, Bytes, ValueInt, inspected_value)
+    catch
+    %% Value starts with number but contains chars. (e.g. "12ab")
+        error:_ ->
+            set(Key, Flags, Exptime, Bytes, Value, inspected_value)
+    end;
+%% When given only "0", the value is integer
+set(Key, Flags, Exptime, Bytes, <<"0">> = Value) ->
+    Zero = binary_to_integer(Value),
+    set(Key, Flags, Exptime, Bytes, Zero, inspected_value);
+set(Key, Flags, Exptime, Bytes, Value) ->
+    set(Key, Flags, Exptime, Bytes, Value, inspected_value).
 
 incr(Key, Value) when is_integer(Value), Value >= 0 ->
     case ememcached_storage:incr(Key, Value) of
