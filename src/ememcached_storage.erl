@@ -44,13 +44,13 @@ get_internal(Key) ->
     case ets:lookup(?TAB, Key) of
         [] ->
             notfound;
-    %% Entry = Flags, Exptime, Bytes, Value
+    %% Entry = Key, Flags, Exptime, Bytes, Value
         [Entry] ->
             {ok, Entry}
     end.
 
-set_internal(Key, Flags, Exptime, Bytes, Value) ->
-    case ets:insert(?TAB, {Key, Flags, Exptime, Bytes, Value}) of
+set_internal(Key, Flags, Exptime, _, Value) ->
+    case ets:insert(?TAB, {Key, Flags, Exptime, Value}) of
         true -> ok;
         _ -> error
     end.
@@ -62,7 +62,7 @@ delete_internal(Key) ->
     end.
 
 incr_internal(Key, Value) when is_integer(Value), Value >= 0 ->
-    try ets:update_counter(?TAB, Key, {5, Value}) of
+    try ets:update_counter(?TAB, Key, {4, Value}) of
         Result ->
             {ok, Result}
     catch
@@ -71,7 +71,7 @@ incr_internal(Key, Value) when is_integer(Value), Value >= 0 ->
     end.
 
 decr_internal(Key, Value) when is_integer(Value), Value < 0 ->
-    try ets:update_counter(?TAB, Key, {5, Value, 0, 0}) of
+    try ets:update_counter(?TAB, Key, {4, Value, 0, 0}) of
         Result ->
             {ok, Result}
     catch
