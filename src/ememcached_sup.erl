@@ -25,5 +25,4 @@ init([Port, AcceptorsNum]) ->
     Listener = ?CHILD(ememcached_listener_sup, supervisor, [Port, AcceptorsNum]),
 
     ememcached_storage = ets:new(ememcached_storage, [set, public, named_table]),
-    Storage = ?CHILD(ememcached_storage, worker),
-    {ok, {{one_for_one, 5, 10}, [Storage, Listener]}}.
+    {ok, {{one_for_one, 5, 10}, [Listener]}}.
