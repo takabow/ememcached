@@ -10,15 +10,18 @@
 %% ===================================================================
 get(Key) ->
     case ememcached_storage:get_internal(Key) of
-        {ok, {_, Flags, _, Bytes, Value}} when is_integer(Value) ->
-            {ok, ["VALUE ", Key, " ", Flags, " ", integer_to_list(Bytes), "\r\n", integer_to_list(Value), "\r\nEND\r\n"]};
-        {ok, {_, Flags, _, Bytes, Value}} ->
-            {ok, ["VALUE ", Key, " ", Flags, " ", integer_to_list(Bytes), "\r\n", Value, "\r\nEND\r\n"]};
+        {ok, {_, Flags, _, ValueInt}} when is_integer(ValueInt) ->
+            %% Value is integer
+            Value = integer_to_list(ValueInt),
+            {ok, ["VALUE ", Key, " ", Flags, " ", integer_to_list(length(Value)), "\r\n", Value, "\r\nEND\r\n"]};
+        {ok, {_, Flags, _, Value}} ->
+            %% Value is binary
+            {ok, ["VALUE ", Key, " ", Flags, " ", integer_to_list(byte_size(Value)), "\r\n", Value, "\r\nEND\r\n"]};
         notfound ->
             {error, "END\r\n"}
     end.
 
-set(Key, Flags, Exptime, Bytes, Value, inspected_value) ->
+set_internal(Key, Flags, Exptime, Bytes, Value) ->
     case ememcached_storage:set(Key, Flags, Exptime, Bytes, Value) of
         ok ->
             {ok, "STORED\r\n"};
@@ -33,31 +36,30 @@ set(Key, Flags, Exptime, Bytes, <<Digit:8, _/binary>> = Value) when 48 < Digit, 
     try binary_to_integer(Value) of
     %% Value is integer!
         ValueInt ->
-            set(Key, Flags, Exptime, Bytes, ValueInt, inspected_value)
+            set_internal(Key, Flags, Exptime, Bytes, ValueInt)
     catch
     %% Value starts with number but contains chars. (e.g. "12ab")
         error:_ ->
-            set(Key, Flags, Exptime, Bytes, Value, inspected_value)
+            set_internal(Key, Flags, Exptime, Bytes, Value)
     end;
 %% When given only "0", the value is integer
 set(Key, Flags, Exptime, Bytes, <<"0">> = Value) ->
     Zero = binary_to_integer(Value),
-    set(Key, Flags, Exptime, Bytes, Zero, inspected_value);
+    set_internal(Key, Flags, Exptime, Bytes, Zero);
 set(Key, Flags, Exptime, Bytes, Value) ->
-    set(Key, Flags, Exptime, Bytes, Value, inspected_value).
+    set_internal(Key, Flags, Exptime, Bytes, Value).
 
 incr(Key, Value) when is_integer(Value), Value >= 0 ->
     case ememcached_storage:incr(Key, Value) of
         {ok, Result} ->
-            {ok, io_lib:format("~p\r\n", [Result])};
+            {ok, [integer_to_list(Result), "\r\n"]};
         notfound ->
-            {notfound, "NOT_FOUND\r\n"};
-        X -> io:format("~p", [X])
+            {notfound, "NOT_FOUND\r\n"}
     end;
 incr(_, Value) when is_integer(Value), Value < 0 ->
     {error, "ERROR\r\n"};
 incr(Key, Value) ->
-    try list_to_integer(binary_to_list(Value)) of
+    try binary_to_integer(Value) of
         ValueInt ->
             incr(Key, ValueInt)
     catch
@@ -68,14 +70,14 @@ incr(Key, Value) ->
 decr(Key, Value) when is_integer(Value), Value < 0 ->
     case ememcached_storage:decr(Key, Value) of
         {ok, Result} ->
-            {ok, io_lib:format("~p\r\n", [Result])};
+            {ok, [integer_to_list(Result), "\r\n"]};
         notfound ->
             {notfound, "NOT_FOUND\r\n"}
     end;
 decr(_, Value) when is_integer(Value), Value >= 0 ->
     {error, "ERROR\r\n"};
 decr(Key, Value) ->
-    try list_to_integer(binary_to_list(Value)) of
+    try binary_to_integer(Value) of
         ValueInt ->
             decr(Key, -ValueInt)
     catch
