@@ -24,5 +24,12 @@ start_link(Port, AcceptorsNum) ->
 init([Port, AcceptorsNum]) ->
     Listener = ?CHILD(ememcached_listener_sup, supervisor, [Port, AcceptorsNum]),
 
-    ememcached_storage = ets:new(ememcached_storage, [set, public, named_table]),
+    ememcached_storage = ets:new(ememcached_storage,
+        [
+            set,
+            public,
+            named_table,
+            {write_concurrency, false},
+            {read_concurrency, false}
+        ]),
     {ok, {{one_for_one, 5, 10}, [Listener]}}.

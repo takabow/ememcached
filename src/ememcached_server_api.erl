@@ -11,12 +11,11 @@
 get(Key) ->
     case ememcached_storage:get_internal(Key) of
         {ok, {_, Flags, _, Bytes, Value}} when is_integer(Value) ->
-            {ok, list_to_binary(["VALUE ", Key, " ", Flags, " ", integer_to_list(Bytes), "\r\n", integer_to_list(Value), "\r\nEND\r\n"])};
+            {ok, ["VALUE ", Key, " ", Flags, " ", integer_to_list(Bytes), "\r\n", integer_to_list(Value), "\r\nEND\r\n"]};
         {ok, {_, Flags, _, Bytes, Value}} ->
-            {ok, list_to_binary(["VALUE ", Key, " ", Flags, " ", integer_to_list(Bytes), "\r\n", Value, "\r\nEND\r\n"])};
+            {ok, ["VALUE ", Key, " ", Flags, " ", integer_to_list(Bytes), "\r\n", Value, "\r\nEND\r\n"]};
         notfound ->
             {error, "END\r\n"}
-
     end.
 
 set(Key, Flags, Exptime, Bytes, Value, inspected_value) ->
