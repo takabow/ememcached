@@ -13,7 +13,7 @@ start_link() ->
     proc_lib:start_link(?MODULE, init, [self()]).
 
 start_worker(Pid, Socket) ->
-    %% Pid = ememcached_connection_sup の Pid
+    %% Pid = ememcached_connection_sup's Pid
     Pid ! {?MODULE, start_worker, self(), Socket},
     receive
         Pid -> ok

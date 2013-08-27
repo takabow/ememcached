@@ -1,37 +1,25 @@
 %% @doc Backend storage using ets.
 -module(ememcached_storage).
 
--behaviour(gen_server).
-
 %% API
--export([start_link/0]).
-
 -export([get/1, set/5, delete/1, incr/2, decr/2]).
 -export([get_internal/1, set_internal/5, delete_internal/1, incr_internal/2, decr_internal/2]).
 
-%% gen_server
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-
 -define(TAB, ememcached_storage).
--record(state, {}).
 
 %% ===================================================================
 %% API
 %% ===================================================================
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
 get(Key) ->
-    %% gen_server:call(?MODULE, {get, [Key]}).
     get_internal(Key).
 
 set(Key, Flags, Exptime, Bytes, Value) ->
-    gen_server:call(?MODULE, {set, [Key, Flags, Exptime, Bytes, Value]}).
+    set_internal(Key, Flags, Exptime, Bytes, Value).
 
 delete(Key) ->
     case contains_internal(Key) of
         true ->
-            gen_server:call(?MODULE, {delete, [Key]});
+            delete_internal(Key);
         false ->
             notfound
     end.
@@ -39,7 +27,7 @@ delete(Key) ->
 incr(Key, Value) ->
     case contains_internal(Key) of
         true ->
-            gen_server:call(?MODULE, {incr, [Key, Value]});
+            incr_internal(Key, Value);
         false ->
             notfound
     end.
@@ -47,7 +35,7 @@ incr(Key, Value) ->
 decr(Key, Value) ->
     case contains_internal(Key) of
         true ->
-            gen_server:call(?MODULE, {decr, [Key, Value]});
+            decr_internal(Key, Value);
         false ->
             notfound
     end.
@@ -93,39 +81,3 @@ decr_internal(Key, Value) when is_integer(Value), Value < 0 ->
 
 contains_internal(Key) ->
     ets:member(?TAB, Key).
-
-%% ===================================================================
-%% Genserver callbacks
-%% ===================================================================	
-init(_Args) ->
-    {ok, #state{}}.
-
-handle_call({get, [Key]}, _From, State) ->
-    {reply, get_internal(Key), State};
-
-handle_call({set, [Key, Flags, Exptime, Bytes, Value]}, _From, State) ->
-    {reply, set_internal(Key, Flags, Exptime, Bytes, Value), State};
-
-handle_call({delete, [Key]}, _From, State) ->
-    {reply, delete_internal(Key), State};
-
-handle_call({incr, [Key, Value]}, _From, State) ->
-    {reply, incr_internal(Key, Value), State};
-
-handle_call({decr, [Key, Value]}, _From, State) ->
-    {reply, decr_internal(Key, Value), State};
-
-handle_call(_Request, _From, State) ->
-    {noreply, State}.
-
-handle_cast(_Request, State) ->
-    {noreply, State}.
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.

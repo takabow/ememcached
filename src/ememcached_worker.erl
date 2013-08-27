@@ -62,9 +62,7 @@ command(ConnectionSocket, [<<"incr">>, Key, Value]) ->
 command(ConnectionSocket, [<<"decr">>, Key, Value]) ->
     {_, Response} = ememcached_server_api:decr(Key, Value),
     gen_tcp:send(ConnectionSocket, Response);
-command(ConnectionSocket, [<<"quit">>, _]) ->
-    gen_tcp:close(ConnectionSocket);
-command(ConnectionSocket, [<<"quit">>]) ->
+command(ConnectionSocket, [<<"quit">>| _]) ->
     gen_tcp:close(ConnectionSocket);
 command(_, []) ->
     ok;
