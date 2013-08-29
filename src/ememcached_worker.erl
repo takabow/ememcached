@@ -35,7 +35,6 @@ loop(ConnectionSocket) ->
         {error, closed} -> ok
     end.
 
-
 command(ConnectionSocket, [<<"get">>, Key]) ->
     {_, Response} = ememcached_server_api:get(Key),
     gen_tcp:send(ConnectionSocket, Response);
